@@ -3,6 +3,7 @@
 
 import pygame
 import math
+import sys
 
 
 # Initialize the game engine
@@ -34,47 +35,43 @@ class circle():
             self.x_vel = x_vel
             self.y_vel = y_vel
         
-    def update_pos(self, pos=(), bouncein = False):
+    def update_pos(self, pos=(),bouncein=False):
         if(pos != ()):
-            self.x = pos
-            self.y = pos
+            self.x,self.y = pos
         else:
-            # New bounce boudary
             if bouncein:
-                if(self.x + self.x_vel > SIZE[0] or self.x - self.x_vel < 0):
+                if(self.x + self.x_vel > SIZE[0] or
+                   self.x - self.x_vel < 0
+                   ):
                     if(self.x > SIZE[0]):
                         self.x = SIZE[0] - 1
                     elif(self.x < 0):
                         self.x = 1
                     self.x_vel *= -1
-                if(self.y + self.y_vel > SIZE[1] or self.y - self.y_vel < 0):
+                if(self.y + self.y_vel > SIZE[1] or
+                   self.y - self.y_vel < 0
+                   ):
                     if(self.y > SIZE[1]):
                         self.y = SIZE[1] - 1
                     elif(self.y < 0):
                         self.y = 1
                     self.y_vel *= -1
-
-
-        # # Old Non-bounce boundary
-        # else:
-        #     self.x += self.x_vel
-        #     self.y += self.y_vel           
+            self.x += self.x_vel
+            self.y += self.y_vel           
     
-    def show(self):
-        print("n:{},x:{},y:{}\nvX:{},vY:{}".format(self.num,self.x,self.y,self.x_vel,self.y_vel))
+    def get_text(self):
+        msg = "n:{:.0f},x:{:.2f},y:{:.2f}\tvX:{:.2f},vY:{:.2f}".format(self.num,self.x,self.y,self.x_vel,self.y_vel)
+        return msg
         
 def draw_dot(screen,color,pos,radius):
     pygame.draw.circle(screen,color,pos,radius)
     
-def g_between(dot1,dot2,fps):
+def g_between(dot1,dot2):
     r = math.sqrt((dot1.x-dot2.x)**2 + (dot1.y-dot2.y)**2) # Distance between the planets
     G = 6.67e-11 # Gravitational constant
-    print("r:{}".format(r))
+    #print("r:{}".format(r))
     
-    if(r > 0):
-        if(fps == 0):
-            fps = target_fps
-            
+    if(r > 0):            
         # Force and angle between the planets using Newton's Universal Law of Gravitation
         force = (G*dot1.mass*dot2.mass)/(r**2)
         theta = math.acos(abs(dot1.x-dot2.x)/r)
@@ -98,19 +95,51 @@ def g_between(dot1,dot2,fps):
         dot2.update_velocity(x_vectorYellow,y_vectorYellow)
         
         # Print the new position
-        dot1.show()
-        dot2.show()
+        msg1 = dot1.get_text()
+        msg2 = dot2.get_text()
+        
+        sys.stdout.write("\r{}".format(msg1))
+        
 
 
+def draw_text():
+    # Helper function to draw information to the screen
+    WHITE = (255,255,255)
+    # Position and velocity details of the two planets
+    infoSurface = myfont.render("Position and Velocity of the Two Planets: ", False, WHITE)
+    white_planet_text = "Position of the White Planet:   X: {:.0f}  Y: {:.0f}".format(c1.x,c1.y)
+    posSurfaceWhite = myfont.render(white_planet_text, False, WHITE)
+    
+    yellow_planet_text = "Position of the Yellow Planet:   X: {:.0f}  Y: {:.0f}".format(c2.x,c2.y)
+    posSurfaceYellow = myfont.render(yellow_planet_text, False, WHITE)
+
+    white_vel = math.sqrt(c1.x_vel**2 + c1.y_vel**2)
+    white_force_text = "Velocity of the White Planet:    V: {:.2f}  Vx: {:.2f}  Vy: {:.2f}".format(white_vel,
+                                                                                       c1.x_vel,
+                                                                                       c1.y_vel)
+    forceSurfaceWhite = myfont.render(white_force_text, False, WHITE)
+    
+    yellow_vel = math.sqrt(c2.x_vel**2 + c2.y_vel**2)
+    yellow_force_text = "Velocity of the Yellow Planet:    V: {:.2f}  Vx: {:.2f}  Vy: {:.2f}".format(yellow_vel,
+                                                                                       c2.x_vel,
+                                                                                       c2.y_vel)
+    
+    forceSurfaceYellow = myfont.render(yellow_force_text, False, WHITE)
+    
+    screen.blit(infoSurface,(0, 2))
+    screen.blit(posSurfaceWhite,(0, 40))
+    screen.blit(posSurfaceYellow,(0, 60))
+    screen.blit(forceSurfaceWhite,(0, 100))
+    screen.blit(forceSurfaceYellow,(0, 120))
+    
 # Create the two planets
 c1 = circle((600,460), (-0.25, 0), [255,255,255], mass = 100, num = 1)
-c2 = circle((500,400), (0, 0), [255,255,0], mass = 10e10, num = 1)
+c2 = circle((500,400), (0, 0), [255,255,0], mass = 10e10, num = 2)
 
 
 # Loop until the user clicks the close button.
 done = False
 while not done:
-    fps = clock.get_fps()
 
     for event in pygame.event.get():   # User did something
         if event.type == pygame.QUIT:  # If user clicked close
@@ -124,25 +153,11 @@ while not done:
     draw_dot(screen, c2.color, (round(c2.x), round(c2.y)), 10)    
     
     # Compute the force between the planets and update their positions
-    g_between(c1,c2,fps)
+    g_between(c1,c2)
     c1.update_pos()
     c2.update_pos()
     
-    # Position and velocity details of the two planets
-    infoSurface = myfont.render("Position and Velocity of the Two Planets: ", False, (255, 255, 255))
-    posSurfaceWhite = myfont.render("Position of the White Planet: " + "  X: " + str(round(c1.x)) + "  Y: " + str(round(c1.y)), False, (255, 255, 255))
-    posSurfaceYellow = myfont.render("Position of the Yellow Planet: " + "  X: " + str(round(c2.x)) + "  Y: " + str(round(c2.y)), False, (255, 255, 255))
-
-    forceSurfaceWhite = myfont.render("Velocity of the White Planet:  " + "  V: " + str(round(math.sqrt(c1.x_vel**2 + c1.y_vel**2),2)) + \
-        "  Vx: " + str(round(c1.x_vel,2)) + "  Vy: " + str(round(c1.y_vel,2)), False, (255, 255, 255))
-    forceSurfaceYellow = myfont.render("Velocity of the Yellow Planet:  " + "  V: " + str(round(math.sqrt(c2.x_vel**2 + c2.y_vel**2),2)) + \
-        "  Vx: " + str(round(c2.x_vel,2)) + "  Vy: " + str(round(c2.y_vel,2)), False, (255, 255, 255))
-
-    screen.blit(infoSurface,(0, 2))
-    screen.blit(posSurfaceWhite,(0, 40))
-    screen.blit(posSurfaceYellow,(0, 60))
-    screen.blit(forceSurfaceWhite,(0, 100))
-    screen.blit(forceSurfaceYellow,(0, 120))
+    draw_text()
     
     # Update the screen with what we've drawn.
     pygame.display.flip()
