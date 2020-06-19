@@ -34,13 +34,31 @@ class circle():
             self.x_vel = x_vel
             self.y_vel = y_vel
         
-    def update_pos(self, pos=()):
+    def update_pos(self, pos=(), bouncein = False):
         if(pos != ()):
             self.x = pos
             self.y = pos
         else:
-            self.x += self.x_vel
-            self.y += self.y_vel           
+            # New bounce boudary
+            if bouncein:
+                if(self.x + self.x_vel > SIZE[0] or self.x - self.x_vel < 0):
+                    if(self.x > SIZE[0]):
+                        self.x = SIZE[0] - 1
+                    elif(self.x < 0):
+                        self.x = 1
+                    self.x_vel *= -1
+                if(self.y + self.y_vel > SIZE[1] or self.y - self.y_vel < 0):
+                    if(self.y > SIZE[1]):
+                        self.y = SIZE[1] - 1
+                    elif(self.y < 0):
+                        self.y = 1
+                    self.y_vel *= -1
+
+
+        # # Old Non-bounce boundary
+        # else:
+        #     self.x += self.x_vel
+        #     self.y += self.y_vel           
     
     def show(self):
         print("n:{},x:{},y:{}\nvX:{},vY:{}".format(self.num,self.x,self.y,self.x_vel,self.y_vel))
