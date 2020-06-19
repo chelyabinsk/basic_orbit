@@ -1,5 +1,5 @@
 # Planetary simulation showing planets orbiting aroudn a star using the pygame library
-# We solve the computations exactly without solving a system of ODEs
+# We solve the computations exactly using the angles between the planets 
 
 
 import pygame
@@ -70,8 +70,8 @@ def draw_dot(screen,color,pos,radius):
 def g_between(Planet,Sun):
     r = math.sqrt((Planet.x-Sun.x)**2 + (Planet.y-Sun.y)**2) # Distance between the planets
     G = 6.67e-11 # Gravitational constant
-    #print("r:{}".format(r))
-    
+
+
     if(r > 0):            
         # Force and angle between the planets using Newton's Universal Law of Gravitation
         force = (G*Planet.mass*Sun.mass)/(r**2)
@@ -97,7 +97,7 @@ def g_between(Planet,Sun):
         
         # Print the new position
         msg1 = Planet.get_text()
-        # msg2 = dot2.get_text()
+        # msg2 = Sun.get_text()
         
         sys.stdout.write("\r{}".format(msg1))
         
@@ -153,17 +153,21 @@ def draw_text():
     screen.blit(forceSurfaceRed,(0, 160))
 
     
-# Create the planets and the Sun 
+# Create the planets and the Sun: 
 # Planets:
-c1 = circle((600,460), (-0.25, 0), [255,255,255], mass = 100, num = 1)
-c3 = circle((600,560), (-0.20, 0), [255,0,0], mass = 100, num = 3)
-c4 = circle((600,500), (-0.23, 0), [0,0,255], mass = 100, num = 4)
+c1 = circle((600,460), (-0.25, 0), [255,255,255], mass = 10e3, num = 1)
+c3 = circle((600,560), (-0.20, 0), [255,0,0], mass = 10e8, num = 3) 
+c4 = circle((600,500), (-0.23, 0), [0,0,255], mass = 10e4, num = 4)
 
 # Sun:
 c2 = circle((500,400), (0, 0), [255,255,0], mass = 10e10, num = 2) 
 
+# Red Planet's moon:
+c5 = circle((595,575), (-0.14, 0), [0,255,0], mass = 10, num = 5)
 
-# Loop until the user clicks the close button.
+
+
+# Loop until the user clicks the close button:
 done = False
 while not done:
 
@@ -176,17 +180,22 @@ while not done:
     
     # Draw the two planets
     draw_dot(screen, c1.color, (round(c1.x), round(c1.y)), 5)
-    draw_dot(screen, c3.color, (round(c3.x), round(c3.y)), 5)   
-    draw_dot(screen, c4.color, (round(c4.x), round(c4.y)), 5)     
-    draw_dot(screen, c2.color, (round(c2.x), round(c2.y)), 10)    
+    draw_dot(screen, c3.color, (round(c3.x), round(c3.y)), 7)   
+    draw_dot(screen, c4.color, (round(c4.x), round(c4.y)), 6)     
+    draw_dot(screen, c2.color, (round(c2.x), round(c2.y)), 10)  # Sun  
+    draw_dot(screen, c5.color, (round(c5.x), round(c5.y)), 2)    
+
     
     # Compute the force between the planets and update their positions
     g_between(c1,c2)
     g_between(c3,c2)
     g_between(c4,c2)
+    g_between(c5,c3)
+    g_between(c5,c2)
     c1.update_pos()
     c3.update_pos()
     c4.update_pos()
+    c5.update_pos()
     c2.update_pos()
     
     draw_text()
